@@ -10,20 +10,20 @@ import (
 )
 
 var (
-	_ function.Function = ExampleFunction{}
+	_ function.Function = DriverFunction{}
 )
 
-func NewExampleFunction() function.Function {
-	return ExampleFunction{}
+func NewDriverFunction() function.Function {
+	return DriverFunction{}
 }
 
-type ExampleFunction struct{}
+type DriverFunction struct{}
 
-func (r ExampleFunction) Metadata(_ context.Context, req function.MetadataRequest, resp *function.MetadataResponse) {
+func (r DriverFunction) Metadata(_ context.Context, req function.MetadataRequest, resp *function.MetadataResponse) {
 	resp.Name = "example"
 }
 
-func (r ExampleFunction) Definition(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
+func (r DriverFunction) Definition(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
 	resp.Definition = function.Definition{
 		Summary:             "Example function",
 		MarkdownDescription: "Echoes given argument as result",
@@ -37,7 +37,7 @@ func (r ExampleFunction) Definition(_ context.Context, _ function.DefinitionRequ
 	}
 }
 
-func (r ExampleFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
+func (r DriverFunction) Run(ctx context.Context, req function.RunRequest, resp *function.RunResponse) {
 	var data string
 
 	resp.Error = function.ConcatFuncErrors(req.Arguments.Get(ctx, &data))

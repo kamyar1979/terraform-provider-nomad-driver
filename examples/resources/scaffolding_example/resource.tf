@@ -1,3 +1,3 @@
-resource "scaffolding_example" "example" {
+resource "nomad_driver" "main" {
   configurable_attribute = "some-value"
 }
