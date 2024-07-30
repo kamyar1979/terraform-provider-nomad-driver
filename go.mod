@@ -1,4 +1,4 @@
-module github.com/hashicorp/terraform-provider-scaffolding-framework
+module github.com/kamyar1979/terraform-nomad-driver-provider
 
 go 1.21
 
