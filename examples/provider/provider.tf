@@ -1,3 +1,0 @@
-provider "nomad-driver" {
-  address = 
-}

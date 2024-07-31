@@ -6,8 +6,11 @@ package provider
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 
+	"github.com/hashicorp/nomad/api"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -22,20 +25,46 @@ import (
 var _ resource.Resource = &DriverResource{}
 var _ resource.ResourceWithImportState = &DriverResource{}
 
-func NewExampleResource() resource.Resource {
+func NewDriverResource() resource.Resource {
 	return &DriverResource{}
+}
+
+// DownloadFile will download a url and store it in local filepath.
+// It writes to the destination file as it downloads it, without
+// loading the entire file into memory.
+func DownloadFile(url string, filepath string) error {
+	// Create the file
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DriverResource defines the resource implementation.
 type DriverResource struct {
-	client *http.Client
+	client *api.Client
 }
 
 // DriverResourceModel describes the resource data model.
 type DriverResourceModel struct {
-	ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
-	Defaulted             types.String `tfsdk:"defaulted"`
-	Id                    types.String `tfsdk:"id"`
+	BinaryUrl types.String `tfsdk:"binary_url"`
+	Id        types.String `tfsdk:"id"`
 }
 
 func (r *DriverResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -75,7 +104,7 @@ func (r *DriverResource) Configure(ctx context.Context, req resource.ConfigureRe
 		return
 	}
 
-	client, ok := req.ProviderData.(*http.Client)
+	client, ok := req.ProviderData.(*api.Client)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -91,6 +120,16 @@ func (r *DriverResource) Configure(ctx context.Context, req resource.ConfigureRe
 
 func (r *DriverResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data DriverResourceModel
+	nodeSelf, err := r.client.Agent().Self()
+	if err != nil {
+		return
+	}
+	//dataDir := nodeSelf.Config["data_dir"].(string)
+	pluginDir := nodeSelf.Config["plugin_dir"].(string)
+
+	if DownloadFile(data.BinaryUrl.String(), pluginDir) != nil {
+		return
+	}
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
