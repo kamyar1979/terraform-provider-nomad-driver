@@ -69,7 +69,7 @@ type DriverResourceModel struct {
 }
 
 func (r *DriverResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_driver"
+	resp.TypeName = "nomad-driver"
 }
 
 func (r *DriverResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

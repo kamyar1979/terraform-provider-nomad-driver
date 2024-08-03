@@ -1,4 +1,4 @@
-module github.com/kamyar1979/terraform-nomad-driver-provider
+module github.com/kamyar1979/terraform-provider-nomad-driver
 
 go 1.21
 

@@ -6,7 +6,7 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/kamyar1979/terraform-nomad-driver-provider/internal/provider"
+	"github.com/kamyar1979/terraform-provider-nomad-driver/internal/provider"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"

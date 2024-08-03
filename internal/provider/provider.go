@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"github.com/hashicorp/nomad/api"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -43,6 +44,10 @@ func (p *NomadCustomDriverProvider) Resources(_ context.Context) []func() resour
 			return &DriverResource{client: p.client}
 		},
 	}
+}
+
+func (p *NomadCustomDriverProvider) DataSources(_ context.Context) []func() datasource.DataSource {
+	return []func() datasource.DataSource{}
 }
 
 func (p *NomadCustomDriverProvider) Configure(
