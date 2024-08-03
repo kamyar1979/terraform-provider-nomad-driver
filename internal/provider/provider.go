@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -15,15 +16,18 @@ func New() provider.Provider {
 
 type NomadCustomDriverProvider struct {
 	client *api.Client
-	//config nomad.ProviderConfig
 	provider.Provider
 }
 
-func (p *NomadCustomDriverProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "nomad"
+func (p *NomadCustomDriverProvider) Metadata(_ context.Context,
+	_ provider.MetadataRequest,
+	resp *provider.MetadataResponse) {
+	resp.TypeName = "nomad-driver"
 }
 
-func (p *NomadCustomDriverProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *NomadCustomDriverProvider) Schema(_ context.Context,
+	_ provider.SchemaRequest,
+	resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"address": schema.StringAttribute{
@@ -33,7 +37,18 @@ func (p *NomadCustomDriverProvider) Schema(_ context.Context, _ provider.SchemaR
 	}
 }
 
-func (p *NomadCustomDriverProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *NomadCustomDriverProvider) Resources(_ context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		func() resource.Resource {
+			return &DriverResource{client: p.client}
+		},
+	}
+}
+
+func (p *NomadCustomDriverProvider) Configure(
+	ctx context.Context,
+	req provider.ConfigureRequest,
+	resp *provider.ConfigureResponse) {
 	var address types.String
 	diags := req.Config.GetAttribute(ctx, path.Path{}.AtName("address"), &address)
 	resp.Diagnostics.Append(diags...)

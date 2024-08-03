@@ -29,7 +29,7 @@ func NewDriverResource() resource.Resource {
 	return &DriverResource{}
 }
 
-// DownloadFile will download a url and store it in local filepath.
+// DownloadFile will download url and store it in local filepath.
 // It writes to the destination file as it downloads it, without
 // loading the entire file into memory.
 func DownloadFile(url string, filepath string) error {
@@ -59,6 +59,7 @@ func DownloadFile(url string, filepath string) error {
 // DriverResource defines the resource implementation.
 type DriverResource struct {
 	client *api.Client
+	resource.Resource
 }
 
 // DriverResourceModel describes the resource data model.
@@ -68,7 +69,7 @@ type DriverResourceModel struct {
 }
 
 func (r *DriverResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_example"
+	resp.TypeName = req.ProviderTypeName + "_driver"
 }
 
 func (r *DriverResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -148,7 +149,7 @@ func (r *DriverResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// For the purposes of this example code, hardcoding a response value to
 	// save into the Terraform state.
-	data.Id = types.StringValue("example-id")
+	data.Id = types.StringValue("nomad-driver")
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
