@@ -1,3 +1,12 @@
-resource "nomad_driver" "main" {
-  binary_url = "http://localhost/binary/nomad_custom_driver"
+terraform {
+  required_providers {
+    nomad-driver = {
+      source  = "hashicorp/nomad-driver"
+      version = "1.0.0"
+    }
 }
+}
+provider "nomad-driver" {
+  address = "http://localhost:4646"
+}
+resource "nomad-driver" "dotnet_driver" {}
