@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -25,8 +24,8 @@ import (
 var _ resource.Resource = &DriverResource{}
 var _ resource.ResourceWithImportState = &DriverResource{}
 
-func NewDriverResource() resource.Resource {
-	return &DriverResource{}
+func NewDriverResource(client *api.Client) resource.Resource {
+	return &DriverResource{client: client}
 }
 
 // DownloadFile will download url and store it in local filepath.
@@ -69,7 +68,7 @@ type DriverResourceModel struct {
 }
 
 func (r *DriverResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = "nomad-driver"
+	resp.TypeName = "nomad-driver_task-driver"
 }
 
 func (r *DriverResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -78,19 +77,13 @@ func (r *DriverResource) Schema(ctx context.Context, req resource.SchemaRequest,
 		MarkdownDescription: "Example resource",
 
 		Attributes: map[string]schema.Attribute{
-			"configurable_attribute": schema.StringAttribute{
-				MarkdownDescription: "Example configurable attribute",
-				Optional:            true,
-			},
-			"defaulted": schema.StringAttribute{
-				MarkdownDescription: "Example configurable attribute with default value",
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("example value when not configured"),
+			"binary_url": schema.StringAttribute{
+				MarkdownDescription: "Custom driver download url",
+				Required:            true,
 			},
 			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Example identifier",
+				MarkdownDescription: "Driver identifier",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -104,7 +97,6 @@ func (r *DriverResource) Configure(ctx context.Context, req resource.ConfigureRe
 	if req.ProviderData == nil {
 		return
 	}
-
 	client, ok := req.ProviderData.(*api.Client)
 
 	if !ok {
@@ -125,15 +117,14 @@ func (r *DriverResource) Create(ctx context.Context, req resource.CreateRequest,
 	if err != nil {
 		return
 	}
-	//dataDir := nodeSelf.Config["data_dir"].(string)
 	pluginDir := nodeSelf.Config["plugin_dir"].(string)
+
+	// Read Terraform plan data into the model
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if DownloadFile(data.BinaryUrl.String(), pluginDir) != nil {
 		return
 	}
-
-	// Read Terraform plan data into the model
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return

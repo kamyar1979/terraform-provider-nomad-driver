@@ -31,7 +31,7 @@ func (p *NomadCustomDriverProvider) Schema(_ context.Context,
 	resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"address": schema.StringAttribute{
+			"nomad_address": schema.StringAttribute{
 				Required: true,
 			},
 		},
@@ -41,7 +41,7 @@ func (p *NomadCustomDriverProvider) Schema(_ context.Context,
 func (p *NomadCustomDriverProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		func() resource.Resource {
-			return &DriverResource{client: p.client}
+			return NewDriverResource(p.client)
 		},
 	}
 }
@@ -55,7 +55,7 @@ func (p *NomadCustomDriverProvider) Configure(
 	req provider.ConfigureRequest,
 	resp *provider.ConfigureResponse) {
 	var address types.String
-	diags := req.Config.GetAttribute(ctx, path.Path{}.AtName("address"), &address)
+	diags := req.Config.GetAttribute(ctx, path.Path{}.AtName("nomad_address"), &address)
 	resp.Diagnostics.Append(diags...)
 
 	if resp.Diagnostics.HasError() {
